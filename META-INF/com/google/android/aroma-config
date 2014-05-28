@@ -1,0 +1,54 @@
+# MOUNTING
+    exec("/sbin/busybox","mount","/system");
+    exec("/sbin/busybox","mount","/data");
+    exec("/sbin/busybox", "mkdir", "/sdcard/Voxive");
+    exec("/sbin/busybox", "mkdir", "/sdcard/Voxive/backups");
+
+# STYLING
+	# Set Font
+		fontresload( "0", "ttf/Roboto.ttf", "12" );
+		fontresload( "1", "ttf/Roboto.ttf", "18" );
+	# Set DPI
+		ini_set("dp","5");
+	# Load English
+		loadlang("langs/en.lang");
+
+# INFO
+	ini_set("rom_name",	"GApps");
+	ini_set("rom_author",	"Team Voxive");
+	ini_set("rom_device",	"Any 4.4.x ROM/Device");
+textbox("Voxive GApps", "", "", zipread("README.md"));
+
+# RESTORE
+ini_set("text_yes", "RESTORE");
+ini_set("text_no",  "DON'T RESTORE");
+	if
+		confirm("RESTORE", "Do you want to Restore your Selections?")=="yes"
+	then
+		exec("/sbin/busybox", "cp", "/sdcard/Voxive/backups/gapps.prop", "/tmp/aroma/");
+	else
+		sleep(0)
+	endif;
+	
+# GAPPS
+  include("gapps.edify");
+
+# BACKUP
+ini_set("text_yes", "BACKUP");
+ini_set("text_no",  "DON'T BACKUP");
+	if
+		confirm("BACKUP", "Do you want to Backup your Selections?")=="yes"
+	then
+		exec("/sbin/busybox", "cp", "/tmp/aroma/gapps.prop", "/sdcard/Voxive/backups");
+	else
+		sleep(0)
+	endif;
+
+# INSTALL
+viewbox("Ready to Install", "Press Next to begin the install.\n\n"+"If you want to review your installation settings, press Back.", "");
+
+ini_set("text_yes", "Yes");
+ini_set("text_no",  "No");
+ini_set("text_next", "Finish!");
+install("Installing", "<b>"+ini_get("rom_name")+"</b> is being installed.", "", "<b>"+ini_get("rom_name")+"</b> has been successfully installed.");
+resexec("list.sh");

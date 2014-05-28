@@ -1,0 +1,7 @@
+# begin addon properties
+ro.addon.type=gapps
+ro.addon.platform=44
+ro.addon.pa_type=stock
+ro.addon.pa_size=301572
+ro.addon.pa_version=20140524
+# end addon properties

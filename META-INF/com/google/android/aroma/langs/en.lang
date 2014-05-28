@@ -1,0 +1,13 @@
+### LANGUAGE STRING RESOURCE FILE
+#	Language: 	English
+#	By: 		Brandon Giesing
+
+# COMMON SYSTEM STRING RESOURCE
+text_ok=OK
+text_next=Next
+text_back=Back
+text_yes=Yes
+text_no=No
+text_about=About
+text_quit=Quit Install
+text_quit_msg=Are you sure to quit?

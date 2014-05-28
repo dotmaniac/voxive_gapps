@@ -1,0 +1,388 @@
+# Checking to make certain user has a 4.4.x ROM Installed - If not, we abort
+ifelse(
+    is_substring("4.4", file_getprop("/system/build.prop","ro.build.version.release")),
+    (
+        ui_print("Android 4.4.x ROM detected");
+        ui_print(" ");
+    ),
+    (
+        ui_print("**** Incompatible Android ROM detected ****");
+        ui_print(" ");
+        ui_print("Voxive GApps are for Android 4.4.x ONLY");
+        ui_print(" ");
+        ui_print("******** GApps Installation failed *******");
+        ui_print(" ");
+        ui_print("Unmounting system...");
+        run_program("/sbin/busybox", "umount", "/system");
+        ui_print(" ");
+        sleep(7);
+        abort("Aborting...");
+    )
+);
+
+# PREP
+package_extract_file("system/etc/g.prop", "/tmp/g.prop");
+package_extract_file("delete-list.txt", "/tmp/delete-list.txt");
+package_extract_file("gapps-list.txt", "/tmp/gapps-list.txt");
+package_extract_file("install-prep.sh", "/tmp/install-prep.sh");
+set_perm(0, 0, 0777, "/tmp/install-prep.sh");
+run_program("/tmp/install-prep.sh", file_getprop("/tmp/g.prop","ro.addon.pa_type"), file_getprop("/tmp/g.prop","ro.addon.pa_size"), file_getprop("/tmp/g.prop","ro.addon.pa_version"), file_getprop("/system/build.prop","ro.product.device"));
+
+# EXTRA WORK
+set_progress(0.17);
+# Removing pieces that may be left over from other GApps or ROM's
+delete(
+    "/system/app/BrowserProviderProxy.apk",
+    "/system/app/Calendar.apk",
+    "/system/app/Gmail.apk",
+    "/system/app/GmsCore.apk",
+    "/system/app/GoogleCalendar.apk",
+    "/system/app/GoogleCalendarSyncAdapter.apk",
+    "/system/app/GoogleCloudPrint.apk",
+    "/system/app/GoogleHangouts.apk",
+    "/system/app/GoogleKeep.apk",
+    "/system/app/GooglePlus.apk",
+    "/system/app/PartnerBookmarksProvider.apk",
+    "/system/app/QuickSearchBox.apk",
+    "/system/app/Talk.apk",
+    "/system/app/Vending.apk",
+    "/system/app/Youtube.apk",
+    "/system/priv-app/Calendar.apk",
+    "/system/priv-app/GmsCore.apk",
+    "/system/priv-app/GoogleNow.apk",
+    "/system/priv-app/GoogleSearch.apk",
+    "/system/priv-app/OneTimeInitializer.apk",
+    "/system/priv-app/QuickSearchBox.apk",
+    "/system/priv-app/Vending.apk"
+);
+
+# Remove apps from 'app' that need to be installed in 'priv-app'
+delete(
+    "/system/app/CalendarProvider.apk",
+    "/system/app/GoogleBackupTransport.apk",
+    "/system/app/GoogleFeedback.apk",
+    "/system/app/GoogleLoginService.apk",
+    "/system/app/GoogleOneTimeInitializer.apk",
+    "/system/app/GooglePartnerSetup.apk",
+    "/system/app/GoogleServicesFramework.apk",
+    "/system/app/OneTimeInitializer.apk",
+    "/system/app/Phonesky.apk",
+    "/system/app/PrebuiltGmsCore.apk",
+    "/system/app/SetupWizard.apk",
+    "/system/app/talkback.apk",
+    "/system/app/Velvet.apk",
+    "/system/app/Wallet.apk"
+);
+
+# Remove .odex files from early 4.4 GApps packages
+delete(
+    "/system/app/CalendarGoogle.odex",
+    "/system/app/FaceLock.odex",
+    "/system/app/GalleryGoogle.odex",
+    "/system/app/GenieWidget.odex",
+    "/system/app/Gmail2.odex",
+    "/system/app/GoogleCamera.odex",
+    "/system/app/GoogleContactsSyncAdapter.odex",
+    "/system/app/GoogleEars.odex",
+    "/system/app/GoogleTTS.odex",
+    "/system/app/Keep.odex",
+    "/system/app/LatinImeGoogle.odex",
+    "/system/app/MediaUploader.odex",
+    "/system/framework/com.google.android.camera2.odex",
+    "/system/framework/com.google.android.maps.odex",
+    "/system/framework/com.google.android.media.effects.odex",
+    "/system/framework/com.google.widevine.software.drm.odex",
+    "/system/priv-app/CalendarProvider.odex",
+    "/system/priv-app/GoogleBackupTransport.odex",
+    "/system/priv-app/GoogleFeedback.odex",
+    "/system/priv-app/GoogleLoginService.odex",
+    "/system/priv-app/GooglePartnerSetup.odex",
+    "/system/priv-app/GoogleServicesFramework.odex",
+    "/system/priv-app/OneTimeInitializer.odex",
+    "/system/priv-app/SetupWizard.odex"
+);
+
+# Removing obsolete libs from previous versions of Google+ (PlusOne)
+delete(
+    "/system/lib/libfacetracker.so",
+    "/system/lib/libfrsdk.so",
+    "/system/lib/libplus_jni_v8.so",
+    "/system/lib/librs.antblur.so",
+    "/system/lib/librs.antblur_constant.so",
+    "/system/lib/librs.antblur_drama.so",
+    "/system/lib/librs.drama.so",
+    "/system/lib/librs.film_base.so",
+    "/system/lib/librs.fixedframe.so",
+    "/system/lib/librs.grey.so",
+    "/system/lib/librs.image_wrapper.so",
+    "/system/lib/librs.retrolux.so",
+    "/system/lib/librsjni.so",
+    "/system/lib/libRSSupport.so",
+    "/system/lib/libstlport_shared.so"
+);
+
+# Removing obsolete libs from previous versions of Google TTS (GoogleTTS)
+delete("/system/lib/libpatts_engine_jni_api.so","/system/lib/libpatts_engine_jni_api_ub.so");
+
+# Removing obsolete lib from previous versions of Google Search (Velvet)
+delete("/system/lib/libmicro_hotword_jni.so");
+
+# Removing obsolete libs from previous versions of Chrome Browser (Chrome)
+delete("/system/lib/libchromeview.so", "/system/lib/libchrome.1847.114.so");
+
+# Removing obsolete libs from previous versions of Google Drive
+delete(
+    "/system/lib/libdocscanner_image-v7a.so",
+    "/system/lib/liblinearalloc.so",
+    "/system/lib/libndk1.so",
+    "/system/lib/librectifier-v7a.so"
+);
+
+# Removing the stock/AOSP Keyboard and library (since we're adding Google Keyboard)
+delete("/system/app/LatinIME.apk","/system/lib/libjni_latinimegoogle.so");
+
+# Removing a 'Rogue' Keyboard app found in Velocity (and possibly other) ROM's (since we're adding Google Keyboard)
+delete("/system/app/GoogleLatinIme.apk");
+
+# Removing MediaUploader (since Google removed it beginning with 4.4.1)
+delete("/system/app/MediaUploader.apk");
+
+# Removing existing Optional addon.d backup scripts in case they are not being installed this time
+# This will prevent possible restore problems if we left them in
+delete(
+    "/system/addon.d/80-calendar.sh",
+    "/system/addon.d/80-chrome.sh",
+    "/system/addon.d/80-hangouts.sh",
+    "/system/addon.d/80-home.sh",
+    "/system/addon.d/81-home.sh"
+);
+
+# Deleting Google Currents
+delete("/system/app/Currents.apk","/system/priv-app/Currents.apk");
+
+# Removing the stock/AOSP launcher for the new GoogleHome version with more features
+ifelse(
+    file_getprop("/tmp/aroma/gapps.prop", "item.4.2") == "1",
+    (
+        ui_print("Removing Stock/AOSP Launcher...");
+        ui_print(" ");
+        delete(
+            "/system/priv-app/Launcher2.apk",
+            "/system/priv-app/Launcher3.apk",
+            "/system/priv-app/Paclauncher.apk",
+            "/system/priv-app/Trebuchet.apk",
+            "/system/app/Launcher2.apk",
+            "/system/app/Launcher3.apk",
+            "/system/app/Paclauncher.apk",
+            "/system/app/Trebuchet.apk"
+        );
+    )
+);
+
+# Removing the stock/AOSP MMS app (since Hangouts has better integration}
+ifelse(
+    file_getprop("/tmp/aroma/gapps.prop", "item.1.2") == "1",
+    (
+        ui_print("Removing Stock/AOSP MMS App...");
+        ui_print(" ");
+        delete("/system/priv-app/Mms.apk");
+    )
+);
+
+# Removing the stock/AOSP Browser & Google Bookmarks Sync(since we're adding Google Chrome)
+ifelse(
+    file_getprop("/tmp/aroma/gapps.prop", "item.4.1") == "1",
+    (
+        ui_print("Removing Stock/AOSP Browser...");
+        ui_print(" ");
+        delete("/system/app/Browser.apk","/system/app/ChromeBookmarksSyncAdapter.apk");
+    )
+);
+
+# Removing the stock/AOSP PicoTTS (since we're adding GoogleTTS)
+ifelse(
+    file_getprop("/tmp/gapps.prop","replace.picotts") == "true",
+    (
+        ui_print("Removing Stock/AOSP PicoTTS...");
+        ui_print(" ");
+        delete(
+            "/system/priv-app/PicoTts.apk",
+            "/system/app/PicoTts.apk",
+            "/system/lib/libttscompat.so",
+            "/system/lib/libttspico.so"
+        );
+        delete_recursive("/system/tts/lang_pico");
+    )
+);
+
+# If there's not enough space for Chrome Browser we need to remove existing version
+ifelse(
+    file_getprop("/tmp/gapps.prop","install.chrome") == "false",
+    (
+        ui_print("Removing Chrome Browser...");
+        ui_print(" ");
+        delete("/system/app/Chrome.apk","/system/lib/libchrome.1847.114.so");
+    )
+);
+
+# ------------- Removals COMPLETE - On to the installation process -------------
+
+
+# Main install process - copying over system files
+ui_print("Installing GApps...");
+ui_print(" ");
+package_extract_dir("system", "/system");
+
+# Chrome Browser install process - copying over system files
+ifelse(
+    file_getprop("/tmp/aroma/gapps.prop", "item.4.1") == "1",
+    (
+        ui_print("Installing Chrome Browser...");
+        ui_print(" ");
+        package_extract_dir("optional/chrome", "/system");
+        set_perm(0, 0, 0755, "/system/addon.d/78-chromebrowser.sh");
+    )
+);
+
+# FaceUnlock install process - copying over system files
+ifelse(
+    file_getprop("/tmp/aroma/gapps.prop", "item.6.4") == "1",
+    (
+        ui_print("Installing FaceUnlock...");
+        ui_print(" ");
+        package_extract_dir("optional/face", "/system");
+        set_perm(0, 0, 0755, "/system/addon.d/71-faceunlock.sh");
+    )
+);
+
+# Google Camera install process - copying over system files
+ifelse(
+    file_getprop("/tmp/aroma/gapps.prop", "item.5.1") == "1",
+    (
+        ui_print("Installing Google Camera...");
+        ui_print(" ");
+        # Removing Stock/AOSP Camera
+        delete(
+            "/system/app/Camera.apk",
+            "/system/app/Camera2.apk",
+            "/system/priv-app/Camera.apk",
+            "/system/priv-app/Camera2.apk"
+        );
+        package_extract_dir("optional/camera", "/system");
+        set_perm(0, 0, 0755, "/system/addon.d/74-googlecamera.sh");
+    )
+);
+
+# Google Gallery install process - copying over system files
+ifelse(
+    file_getprop("/tmp/aroma/gapps.prop", "item.5.2") == "1" && file_getprop("/tmp/gapps.prop","gallery.device") != "none",
+    (
+        # Removing Stock/AOSP Gallery
+        delete(
+            "/system/app/Gallery.apk",
+            "/system/priv-app/Gallery.apk",
+            "/system/app/Gallery2.apk",
+            "/system/priv-app/Gallery2.apk"
+        );
+        ifelse(
+            file_getprop("/tmp/gapps.prop","gallery.device") == "hammerhead",
+            (
+                ui_print("Installing Nexus 5 Google Gallery...");
+                ui_print(" ");
+                package_extract_dir("optional/gallery/common", "/system");
+                package_extract_dir("optional/gallery/hammerhead", "/system");
+            ),
+            (
+                ifelse(
+                    file_getprop("/tmp/gapps.prop","gallery.device") == "flo"||file_getprop("/tmp/gapps.prop","gallery.device") == "deb",
+                    (
+                        ui_print("Installing Nexus 7 Google Gallery...");
+                        ui_print(" ");
+                        package_extract_dir("optional/gallery/common", "/system");
+                        package_extract_dir("optional/gallery/razor", "/system");
+                    ),
+                    (
+                        ifelse(
+                            file_getprop("/tmp/gapps.prop","gallery.device") == "mako",
+                            (
+                                 ui_print("Installing Nexus 4 Google Gallery...");
+                                 ui_print(" ");
+                                 package_extract_dir("optional/gallery/common", "/system");
+                                 package_extract_dir("optional/gallery/mako", "/system");
+                            ),
+                            (
+                                ifelse(
+                                    file_getprop("/tmp/gapps.prop","gallery.device") == "manta",
+                                    (
+                                        ui_print("Installing Nexus 10 Google Gallery...");
+                                        ui_print(" ");
+                                        package_extract_dir("optional/gallery/common", "/system");
+                                        # Nexus 10 works with Nexus 5 apps - but not its own
+                                        package_extract_dir("optional/gallery/hammerhead/app", "/system/app");
+                                        # We do use the Nexus 10 libs, though
+                                        package_extract_dir("optional/gallery/manta", "/system");
+                                    ),
+                                    (
+                                        ifelse(
+                                            file_getprop("/tmp/gapps.prop","gallery.device") == "tuna",
+                                            (
+                                                ui_print("Installing Nexus 4 Google Gallery...");
+                                                ui_print(" ");
+                                                package_extract_dir("optional/gallery/common", "/system");
+                                                package_extract_dir("optional/gallery/mako", "/system");
+                                            ),
+                                            (
+                                                ui_print("** Unknown Gallery Installation ERROR **");
+                                                ui_print(" ");
+                                                ui_print("*** Please notify TKruzze of this Error ***");
+                                                ui_print(" ");
+                                                ui_print("***** Gallery Installation failed *****");
+                                                ui_print(" ");
+                                                ui_print("Unmounting system...");
+                                                run_program("/sbin/busybox", "umount", "/system");
+                                                ui_print(" ");
+                                                sleep(7);
+                                                abort("Aborting...");
+                                            )
+                                        );
+                                    )
+                                );
+                            )
+                        );
+                    )
+                );
+            )
+        );
+        set_perm(0, 0, 0755, "/system/addon.d/75-googlegallery.sh");
+    )
+);
+
+# FIXING PERMS
+show_progress(0.2, 6);
+ui_print("Fixing Permissions...");
+ui_print(" ");
+set_perm(0, 0, 0755, "/system/addon.d/70-gapps.sh");
+set_perm_recursive(0, 0, 0755, 0644, "/system/app");
+set_perm_recursive(0, 0, 0755, 0644, "/system/priv-app");
+
+# UNMOUNT
+ui_print("Unmounting system...");
+ui_print(" ");
+run_program("/sbin/busybox", "umount", "/system");
+
+# FINISH
+ui_print("GApps Installation Complete!");
+ui_print(" ");
+
+# If there was not enough space for Chrome Browser let's notify the user that it was not installed
+ifelse(
+    file_getprop("/tmp/gapps.prop","install.chrome") == "false",
+    (
+        ui_print("NOTE: Insufficient space was available in");
+        ui_print("system partition to install Chrome Browser");
+        ui_print("You can install from Play Store instead.");
+        ui_print(" ");
+    )
+);
+
+sleep(3);
